@@ -1210,8 +1210,11 @@ Prisma connection before launching separate registration processes.
 2026-11-12 evaluation login presentation verification:
 
 - `npm run build` passed with 934 transformed modules after adding the public
-  evaluation account box and one-click login path. Live verification follows the
-  Git-triggered deployment.
+  evaluation account box and one-click login path.
+- Production deployment `dpl_GafD41kgHv3HGAe81oJMJEBQbWFk` reached READY. The
+  public bundle contains both the `Evaluation demo` label and
+  `Enter evaluation demo` button, and the seeded USER login returned 200 against
+  the permanent URL. Vercel reported no error or fatal logs after verification.
 
 2026-11-12 live classroom deployment verification:
 
