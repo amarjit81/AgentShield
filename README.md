@@ -873,6 +873,8 @@ Use a disposable migrated DB and set `AGENTSHIELD_TEST_DATABASE=1`.
 
 ## Vercel deployment
 
+Public classroom deployment: https://agentshield-demo.vercel.app
+
 The Vite frontend and Express backend deploy together in one Vercel project.
 `api/index.js` exports the existing Express application as one Node.js Function.
 `vercel.json` installs both package trees, generates the Prisma client, builds

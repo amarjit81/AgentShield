@@ -1202,6 +1202,20 @@ Prisma connection before launching separate registration processes.
 
 ## 12. Verification record
 
+2026-11-12 live classroom deployment verification:
+
+- Vercel production deployment `dpl_BNGeJTmY61C33x3vrUgcEsmARZKg` reached
+  READY for commit `fbf812c`. The permanent classroom URL is
+  `https://agentshield-demo.vercel.app`.
+- Against that public URL, USER login returned 200, `/api/auth/me` returned 200,
+  the agent list returned all six seeded demo agents, and logout returned 204.
+- The preceding production end-to-end smoke authorized and executed a simulated
+  refund request, then retrieved its three audit events. This confirmed the
+  browser/API/Neon/policy/execution/audit path before the proxy-only correction.
+- Vercel reported no error or fatal runtime logs for the corrected deployment
+  after the authenticated smoke test. The focused rate-limit suite passed both
+  tests, and the frontend production build passed with 934 transformed modules.
+
 2026-11-12 hosted evaluation deployment preparation:
 
 - Provisioned one Neon PostgreSQL resource through the linked Vercel project and
