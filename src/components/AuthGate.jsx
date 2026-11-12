@@ -2,6 +2,9 @@ import { useEffect, useRef, useState } from 'react';
 import { Alert, Box, Button, Paper, Stack, TextField, Typography } from '@mui/material';
 import { clearSession, currentSession, login, logout } from '../services/auth';
 
+const evaluationEmail = 'user@agentshield.test';
+const evaluationPassword = 'AgentShieldDemo!2026';
+
 export default function AuthGate({ children }) {
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -38,13 +41,21 @@ export default function AuthGate({ children }) {
     return () => { ++restoreVersion.current; clearTimeout(retryTimer.current); window.removeEventListener('agentshield-session-ended', expired); };
   }, []);
 
-  async function signIn(event) {
-    event.preventDefault();
+  async function authenticate(loginEmail, loginPassword) {
     if (busy) return;
     setBusy(true); setError('');
-    try { setSession(await login(email, password)); setPassword(''); }
+    try { setSession(await login(loginEmail, loginPassword)); setPassword(''); }
     catch (err) { setError(err.message); }
     finally { setBusy(false); }
+  }
+  async function signIn(event) {
+    event.preventDefault();
+    await authenticate(email, password);
+  }
+  async function signInForEvaluation() {
+    setEmail(evaluationEmail);
+    setPassword(evaluationPassword);
+    await authenticate(evaluationEmail, evaluationPassword);
   }
   async function signOut() {
     try { await logout(); setSession(null); setPassword(''); setError(''); }
@@ -60,6 +71,14 @@ export default function AuthGate({ children }) {
     <Typography variant="h4" sx={{ mb: 1 }}>AgentShield</Typography>
     <Typography sx={{ mb: 3 }}>Log in to demonstrate refunds, emails, and sandbox file operations.</Typography>
     {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+    <Alert severity="info" sx={{ mb: 2 }}>
+      <Typography fontWeight={700}>Evaluation demo</Typography>
+      <Typography variant="body2">Email: {evaluationEmail}</Typography>
+      <Typography variant="body2" sx={{ mb: 1 }}>Password: {evaluationPassword}</Typography>
+      <Button size="small" variant="outlined" disabled={busy} onClick={signInForEvaluation}>
+        {busy ? 'Opening demo...' : 'Enter evaluation demo'}
+      </Button>
+    </Alert>
     <Stack component="form" onSubmit={signIn} spacing={2}>
       <TextField label="Email" type="email" autoComplete="username" required value={email} disabled={busy} onChange={e => setEmail(e.target.value)} />
       <TextField label="Password" type="password" autoComplete="current-password" required value={password} disabled={busy} onChange={e => setPassword(e.target.value)} />

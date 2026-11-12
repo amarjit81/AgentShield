@@ -905,7 +905,12 @@ JSON parser errors occur before route authentication and retain INVALID_JSON (40
 ## 10. Frontend behavior
 
 AuthGate checks GET /api/auth/me on startup and displays a labeled login form
-when there is no session. After login the dashboard shows the account email/role
+when there is no session. The public classroom deployment also shows its seeded
+USER credentials in an Evaluation demo box. `signInForEvaluation` passes those
+fixed classroom-only values directly to the existing `authenticate` helper, so an
+evaluator can enter the dashboard with one button while the normal form remains
+available. These credentials must not be reused for a private or production
+account. After login the dashboard shows the account email/role
 and logout control. Users see a waiting message instead of review buttons.
 Managers/Admins see Approve/Reject, and saved reviews show the reviewer's email.
 The backend enforces these rules independently of visible controls.
@@ -1201,6 +1206,12 @@ database suites cannot delete each other's fixtures. CLI checks release the pare
 Prisma connection before launching separate registration processes.
 
 ## 12. Verification record
+
+2026-11-12 evaluation login presentation verification:
+
+- `npm run build` passed with 934 transformed modules after adding the public
+  evaluation account box and one-click login path. Live verification follows the
+  Git-triggered deployment.
 
 2026-11-12 live classroom deployment verification:
 
@@ -1896,6 +1907,14 @@ three simulators, stack, MVP boundaries, deterministic-policy requirement, and
 architecture. Later approved architecture decisions must be recorded separately.
 
 ## 18. Implementation history
+
+### 2026-11-12 — Made the public evaluation account discoverable
+
+- Added an Evaluation demo box to `AuthGate.jsx` with the public classroom USER
+  credentials and an `Enter evaluation demo` button.
+- Refactored the existing form submission through `authenticate` so manual and
+  evaluation login share the same busy, error and session behavior. No backend,
+  permission or database behavior changed.
 
 ### 2026-11-12 — Corrected hosted login rate-limit client identification
 
