@@ -1,0 +1,8 @@
+{
+  "engine": "opa",
+  "compilerVersion": "1.21.1",
+  "revision": "r1",
+  "entrypoint": "agentshield/email/decision",
+  "sourceSha256": "bfc798e9f55794c06154bef656a92fbe8d61c2e2189e9ad9cc8d7040e64f7ec3",
+  "wasmSha256": "04c7aa5aaf71d5edbb3eb4e733a3b6e5be2e8a56de79e31aa9d680b46bb06a15"
+}

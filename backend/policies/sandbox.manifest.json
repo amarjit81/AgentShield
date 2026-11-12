@@ -1,0 +1,8 @@
+{
+  "engine": "opa",
+  "compilerVersion": "1.21.1",
+  "revision": "r1",
+  "entrypoint": "agentshield/sandbox/decision",
+  "sourceSha256": "8a477877595b46ba04a60447958eb9769d8816b30068adcabd468ebd95530d66",
+  "wasmSha256": "2da053750c97cf4bcd7050273cdbe6bd9b83cf10281a0e2bb11ba94719bacca0"
+}

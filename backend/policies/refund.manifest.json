@@ -1,0 +1,8 @@
+{
+  "engine": "opa",
+  "compilerVersion": "1.21.1",
+  "revision": "r1",
+  "entrypoint": "agentshield/refund/decision",
+  "sourceSha256": "6813bafe7e04c16b5e1f6406907f73487c5fca691ee5155d0bd94960439d0546",
+  "wasmSha256": "9d815815f9abd4e41abcb59dcfc973ceff8ed6813fa517a4820ae5a2667981b9"
+}

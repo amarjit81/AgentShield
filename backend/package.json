@@ -1,0 +1,39 @@
+{
+  "name": "agentshield-backend",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "email:verify": "node scripts/verify-email.js",
+    "policy:build": "node scripts/build-policy.js",
+    "test:policy": "vitest run test/policy.test.js test/emailPolicy.test.js test/sandboxPolicy.test.js",
+    "dev": "node --watch src/server.js",
+    "db:local": "node scripts/start-local-database.js",
+    "start": "node src/server.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "prisma:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "user:create": "node scripts/create-user.js",
+    "agent:register": "node scripts/register-agent.js",
+    "agent:configure": "node scripts/configure-agent.js",
+    "demo:setup": "node scripts/setup-demo.js"
+  },
+  "dependencies": {
+    "@open-policy-agent/opa-wasm": "1.10.0",
+    "@prisma/client": "6.12.0",
+    "bcryptjs": "^3.0.3",
+    "cookie-parser": "^1.4.7",
+    "dotenv": "^17.2.2",
+    "express": "^5.1.0",
+    "express-rate-limit": "^8.7.1",
+    "jsonwebtoken": "^9.0.3",
+    "nodemailer": "10.1.7",
+    "zod": "^4.1.11"
+  },
+  "devDependencies": {
+    "prisma": "6.12.0",
+    "supertest": "^7.1.4",
+    "vitest": "^5.0.1"
+  }
+}

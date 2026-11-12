@@ -1,0 +1,175 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum ActionType {
+  REFUND
+  SEND_EMAIL
+  SANDBOX_FILE
+}
+
+enum ActionStatus {
+  AUTHORIZED
+  PENDING_APPROVAL
+  BLOCKED
+  APPROVED
+  REJECTED
+  EXECUTED
+  FAILED
+}
+
+enum PolicyOutcome {
+  ALLOW
+  REQUIRE_APPROVAL
+  BLOCK
+}
+
+enum UserRole {
+  USER
+  MANAGER
+  ADMIN
+}
+
+model RefundPolicy {
+  id               String   @id
+  autoApproveLimit Int
+  maxAllowedRefund Int
+  version          Int      @default(1)
+  updatedByEmail   String
+  updatedAt        DateTime @updatedAt
+}
+
+model EmailPolicy {
+  id              String        @id
+  internalDomains String[]
+  blockedDomains  String[]
+  externalAction  PolicyOutcome
+  version         Int           @default(1)
+  updatedByEmail  String
+  updatedAt       DateTime      @updatedAt
+}
+
+model SandboxPolicy {
+  id              String        @id
+  allowedPaths    String[]
+  protectedPaths  String[]
+  readAction      PolicyOutcome
+  writeAction     PolicyOutcome
+  changeAction    PolicyOutcome
+  deleteAction    PolicyOutcome
+  maxContentBytes Int
+  version         Int           @default(2)
+  updatedByEmail  String
+  updatedAt       DateTime      @updatedAt
+}
+
+model User {
+  id           String           @id @default(uuid()) @db.Uuid
+  email        String           @unique
+  passwordHash String
+  role         UserRole         @default(USER)
+  active       Boolean          @default(true)
+  createdAt    DateTime         @default(now())
+  sessions     AuthSession[]
+  requests     ActionRequest[]
+  reviews      ApprovalRecord[]
+  agents       Agent[]
+}
+
+model Agent {
+  id           String       @id @db.VarChar(64)
+  name         String       @db.VarChar(120)
+  ownerId      String       @db.Uuid
+  active       Boolean      @default(true)
+  allowedTools ActionType[] @default([])
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  owner        User         @relation(fields: [ownerId], references: [id], onDelete: Restrict)
+
+  @@index([ownerId])
+}
+
+model AuthSession {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid
+  csrfToken String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model ActionRequest {
+  id             String           @id @default(uuid()) @db.Uuid
+  agentId        String
+  action         ActionType
+  target         String
+  arguments      Json
+  executionMode  String           @default("SIMULATED")
+  emailSender    String?          @db.VarChar(254)
+  status         ActionStatus
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  policyDecision PolicyDecision?
+  approval       ApprovalRecord?
+  execution      ExecutionRecord?
+  auditEvents    AuditEvent[]
+  ownerId        String?          @db.Uuid
+  owner          User?            @relation(fields: [ownerId], references: [id], onDelete: Restrict)
+
+  @@index([agentId, createdAt])
+  @@index([status, createdAt])
+  @@index([ownerId])
+}
+
+model ApprovalRecord {
+  id         String        @id @default(uuid()) @db.Uuid
+  requestId  String        @unique @db.Uuid
+  decision   String
+  snapshot   Json
+  createdAt  DateTime      @default(now())
+  request    ActionRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  reviewerId String?       @db.Uuid
+  reviewer   User?         @relation(fields: [reviewerId], references: [id], onDelete: Restrict)
+}
+
+model ExecutionRecord {
+  id        String        @id @default(uuid()) @db.Uuid
+  requestId String        @unique @db.Uuid
+  result    Json
+  createdAt DateTime      @default(now())
+  request   ActionRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+}
+
+model AuditEvent {
+  id        Int           @id @default(autoincrement())
+  requestId String        @db.Uuid
+  event     String
+  status    String
+  reason    String
+  details   Json
+  createdAt DateTime      @default(now())
+  request   ActionRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+
+  @@index([requestId, id])
+}
+
+model PolicyDecision {
+  id               String        @id @default(uuid()) @db.Uuid
+  requestId        String        @unique @db.Uuid
+  decision         PolicyOutcome
+  reason           String
+  policyVersion    String
+  autoApproveLimit Int?
+  maxAllowedRefund Int?
+  policySnapshot   Json?
+  createdAt        DateTime      @default(now())
+  request          ActionRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+}

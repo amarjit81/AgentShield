@@ -1,0 +1,7 @@
+* { box-sizing: border-box; }
+html, body, #root { min-height: 100%; margin: 0; }
+body { min-width: 320px; }
+@media (max-width: 760px) {
+  .MuiDrawer-root { display: none; }
+  .MuiTableContainer-root { overflow-x: auto; }
+}

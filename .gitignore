@@ -14,3 +14,16 @@ build/
 .DS_Store
 Thumbs.db
 
+# Local runtime, verification, and chart-rendering artifacts
+*.log
+.chart-data-*/
+tmp/
+
+
+.vercel
+
+# Local OPA compiler (compiled policy assets are committed instead)
+backend/.tools/
+backend/demo-workspace/
+output/demo-supervisor.*.log
+output/database-runtime.*.log

@@ -1,0 +1,6 @@
+{
+  "version": 1,
+  "internalDomains": ["agentshield.test"],
+  "blockedDomains": ["blocked.example"],
+  "externalAction": "REQUIRE_APPROVAL"
+}

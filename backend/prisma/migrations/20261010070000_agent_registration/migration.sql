@@ -1,0 +1,13 @@
+CREATE TABLE "Agent" (
+  "id" VARCHAR(64) NOT NULL,
+  "name" VARCHAR(120) NOT NULL,
+  "ownerId" UUID NOT NULL,
+  "active" BOOLEAN NOT NULL DEFAULT true,
+  "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "updatedAt" TIMESTAMP(3) NOT NULL,
+  CONSTRAINT "Agent_pkey" PRIMARY KEY ("id")
+);
+
+CREATE INDEX "Agent_ownerId_idx" ON "Agent"("ownerId");
+ALTER TABLE "Agent" ADD CONSTRAINT "Agent_ownerId_fkey"
+  FOREIGN KEY ("ownerId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
