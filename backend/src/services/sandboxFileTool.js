@@ -11,7 +11,9 @@ const actionSchema = z.object(sandboxActionFields);
 // The only physical files this tool can reach live in this ignored directory.
 export const sandboxDirectory = process.env.AGENTSHIELD_TEST_DATABASE === '1'
   ? resolve(tmpdir(), `agentshield-sandbox-test-${process.pid}`)
-  : resolve(dirname(fileURLToPath(import.meta.url)), '../../demo-workspace');
+  : process.env.VERCEL
+    ? resolve(tmpdir(), 'agentshield-demo-workspace')
+    : resolve(dirname(fileURLToPath(import.meta.url)), '../../demo-workspace');
 const noFollow = constants.O_NOFOLLOW ?? 0;
 const digest = content => createHash('sha256').update(content).digest('hex');
 

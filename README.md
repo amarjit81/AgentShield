@@ -91,9 +91,10 @@ that can create receipts, send SMTP email, or touch sandbox files.
 - Refunds are simulated. No payment provider or real money is used.
 - SMTP acceptance is not proof of inbox delivery; bounce/read tracking is absent.
 - The sandbox is a dedicated demo folder, not unrestricted computer access or a
-  production isolation platform.
+  production isolation platform. On Vercel it uses temporary function storage,
+  which can disappear between invocations or deployments.
 - Approval expiry/revocation, MFA, password reset, public signup, central policy
-  distribution, audit search, and production deployment remain future work.
+  distribution, audit search, and production hardening remain future work.
 - Audit events are append-only through the app, not immutable against a database admin.
 - No AI classifier participates in authorization.
 
@@ -505,6 +506,9 @@ Defense layers:
 6. Targets must be regular non-symlink files; `O_NOFOLLOW` is used where supported.
 
 Normal root is `backend/demo-workspace`; tests use a process-specific temp folder.
+Vercel Functions have a read-only bundle, so the hosted classroom demo maps this
+root to `/tmp/agentshield-demo-workspace`. That directory is isolated from the
+application bundle but is ephemeral and must not be treated as durable storage.
 
 | Operation | OS behavior | Safety |
 |---|---|---|
@@ -867,10 +871,28 @@ ExecutionRecord. Approval does not freeze Agent access.
 
 Use a disposable migrated DB and set `AGENTSHIELD_TEST_DATABASE=1`.
 
+## Vercel deployment
+
+The Vite frontend and Express backend deploy together in one Vercel project.
+`api/index.js` exports the existing Express application as one Node.js Function.
+`vercel.json` installs both package trees, generates the Prisma client, builds
+Vite, includes the checked Rego/Wasm policy assets, sends `/api/*` to Express,
+and sends other paths to the SPA entry point.
+
+Production requires `DATABASE_URL`, `JWT_SECRET`, and `APP_ORIGIN` in Vercel.
+For the classroom demo, keep `EMAIL_DELIVERY_MODE=SIMULATED`; SMTP credentials
+are optional and should not be added unless real sending is intentionally tested.
+Apply the committed Prisma migrations to the hosted database before using the
+dashboard. The Vercel sandbox-file domain uses temporary `/tmp` storage; refund,
+email simulation, authentication, policy, review, execution, and audit records
+use PostgreSQL and remain durable.
+
 ## Project structure
 
 ```text
 AgentShield/
+|-- api/index.js                 Vercel Express Function entry point
+|-- vercel.json                 Production build, policy assets, and routing
 |-- src/                         React frontend
 |   |-- App.jsx                  Dashboard orchestration
 |   |-- components/              Auth/forms/settings/review/receipts
@@ -906,7 +928,7 @@ AgentShield/
 - SMTP recovery/correlation and delivery/bounce tracking.
 - Central OPA distribution/administration.
 - More controlled tool adapters.
-- Repeatable public deployment and production operations.
+- Production monitoring, durable file storage, and stronger deployment operations.
 - Optional AI classification only as an advisory signal, never replacing
   identity, grants, deterministic limits, approval snapshots, or execution integrity.
 

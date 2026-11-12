@@ -39,8 +39,8 @@ the logged-in caller and has REFUND permission. Execution repeats those checks
 against the original request owner. Audit search and optional ambiguous-risk
 classification remain planned.
 It does not intercept existing Codex/Claude/Gemini apps or OS calls. MCP,
-production payments, unrestricted files, and public deployment are outside this
-local MVP slice.
+production payments, unrestricted files, and production-scale hardening remain
+outside this classroom MVP.
 
 ## 2. Current stack
 
@@ -57,6 +57,8 @@ local MVP slice.
 - REST polling every four seconds: implemented for the selected request and the
   Manager/Admin pending-request queue.
 - Nodemailer 10.1.7: optional authenticated SMTP delivery with verified TLS.
+- Vercel Vite hosting plus one Node.js Function: public classroom deployment;
+  Neon PostgreSQL supplies the hosted database through `DATABASE_URL`.
 - Docker Compose and optional AI provider: planned.
 
 OPA is selected and integrated for refund amounts, email recipient domains, and
@@ -69,6 +71,8 @@ replace critical identity, permission, amount, or execution-integrity rules.
 
 ```text
 scripts/demo-supervisor.js      Local demo service monitor; starts stopped DB/API/Vite processes
+api/index.js                    Vercel entry point; exports the existing Express app
+vercel.json                    Installs both packages, generates Prisma, includes policies, routes UI/API
 src/
   App.jsx                         Dashboard, submission, review, execution, polling
   main.jsx                        React entry point
@@ -409,8 +413,9 @@ stored in requests/reviews/receipts, so use demonstration content.
 
 ### Sandbox-file scope: SANDBOX_FILE
 
-This scope now performs real file operations in backend/demo-workspace, a dedicated
-ignored directory. WRITE creates a new file and refuses to overwrite an existing
+This scope performs real file operations in backend/demo-workspace locally, a dedicated
+ignored directory. On Vercel it uses `/tmp/agentshield-demo-workspace` because the
+deployed function bundle is read-only. WRITE creates a new file and refuses to overwrite an existing
 file; READ returns its actual plain-text contents; CHANGE replaces an existing
 file; DELETE removes an existing file. The default policy allows READ/WRITE and
 requires Manager/Admin approval for CHANGE/DELETE, while editable settings can
@@ -521,6 +526,11 @@ operations honestly. Auto-authorized READ/WRITE requests execute after submissio
 CHANGE/DELETE wait for human review and an execution click. Demo files remain on disk
 until deleted through the app or manually by the operator. No SMTP configuration
 is needed for this scope.
+
+Hosted sandbox files are intentionally ephemeral: Vercel may reuse `/tmp` briefly,
+but another function instance, scale-to-zero event, or deployment may not contain
+the earlier file. PostgreSQL request, approval, execution and audit rows remain
+durable. The hosted classroom demo must not claim durable file storage.
 
 Apply migrations and regenerate Prisma Client from backend before running:
 
@@ -1186,6 +1196,21 @@ Prisma connection before launching separate registration processes.
 
 ## 12. Verification record
 
+2026-11-12 hosted evaluation deployment preparation:
+
+- Provisioned one Neon PostgreSQL resource through the linked Vercel project and
+  connected its environment variables to Production, Preview and Development.
+  Secret values remain outside Git.
+- Applied all 10 committed Prisma migrations to the empty hosted database, then
+  ran the existing transactional demo setup. It created the documented USER and
+  MANAGER accounts and six USER-owned scoped agents.
+- `npm run build` passed with 934 transformed frontend modules;
+  `npm run test:policy` passed all 72 tests across three policy files; importing
+  `api/index.js` with production-shaped environment variables returned the
+  Express handler successfully.
+- Production URL/API verification remains pending the Git-triggered deployment;
+  this entry does not claim the hosted API is live yet.
+
 2026-11-12 repository publication verification:
 
 - `npm run build` completed successfully and produced the React/Vite production
@@ -1784,13 +1809,15 @@ runtime; the user will decide whether to proceed later.
 Password reset, public signup,
 account-management UI, MFA, and shared multi-process login throttling are not
 implemented. Login throttling is in memory per backend process/IP; expired session
-rows are pruned on successful login. Deploying this local MVP remains outside scope.
+rows are pruned on successful login. The public classroom deployment is not a
+production security or operations claim.
 
 Audit is request-scoped and append-only through app behavior. It is not an
 immutable audit store, and database outages can prevent recording errors.
 Execution retries are safe only for the pure simulators; SMTP reserves one attempt
 and refuses resend after reservation. No real refund
-adapter or production deployment is part of this implementation.
+adapter is part of this implementation. Public deployment is for classroom
+evaluation; monitoring, operational hardening and durable file storage remain planned.
 
 ## 14. MVP acceptance targets and schedule
 
@@ -1843,6 +1870,24 @@ three simulators, stack, MVP boundaries, deterministic-policy requirement, and
 architecture. Later approved architecture decisions must be recorded separately.
 
 ## 18. Implementation history
+
+### 2026-11-12 — Prepared Vercel and Neon classroom deployment
+
+- Added `api/index.js` to export the existing Express application as one Vercel
+  Node.js Function without duplicating routes or authorization logic.
+- Added `vercel.json` to install the frontend and backend package trees, generate
+  Prisma Client, build Vite, include the checked Rego/Wasm policy assets, route
+  `/api/*` to Express, and keep SPA deep links on `index.html`.
+- Provisioned a Vercel-managed Neon database, applied all 10 migrations and
+  created the existing documented demo accounts/agents. Configured a generated
+  production JWT secret, exact application origin and simulated email mode in
+  Vercel; no values were committed.
+- Mapped the hosted sandbox-file demo to writable `/tmp` storage. Its database
+  evidence is durable, but file contents are explicitly ephemeral across
+  instances, scale-to-zero events and deployments.
+- Verified the frontend build, all 72 database-free policy tests and the Vercel
+  Express entry import. Live production API verification is still pending the
+  deployment triggered by the next Git push.
 
 ### 2026-11-12 — Prepared the complete project for repository publication
 
