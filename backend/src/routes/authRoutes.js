@@ -1,13 +1,23 @@
 import { Router } from 'express';
 import bcrypt from 'bcryptjs';
-import { rateLimit } from 'express-rate-limit';
+import { ipKeyGenerator, rateLimit } from 'express-rate-limit';
 import { prisma } from '../lib/prisma.js';
 import { loginSchema } from '../schemas/authSchema.js';
 import { cookieName, cookieOptions, sessionSeconds, startSession, publicUser, requireAuth, requireCsrf, requireClient } from '../services/authService.js';
 
 export const authRouter = Router();
 const dummyHash = await bcrypt.hash('not-a-real-account-password', 12);
+
+export function loginRateLimitKey(request) {
+  const vercelIp = process.env.VERCEL === '1'
+    ? request.get('x-vercel-forwarded-for')?.split(',')[0]?.trim()
+    : undefined;
+  const clientIp = vercelIp || request.socket.remoteAddress || request.ip || 'unknown';
+  return ipKeyGenerator(clientIp);
+}
+
 const loginLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 20, standardHeaders: 'draft-8', legacyHeaders: false,
+  keyGenerator: loginRateLimitKey,
   message: { error: 'LOGIN_RATE_LIMITED', message: 'Too many login attempts. Try again later.' },
 });
 

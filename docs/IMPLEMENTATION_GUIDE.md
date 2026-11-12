@@ -876,8 +876,14 @@ Login requires the custom client header; browser HTML forms cannot supply it.
 If an Origin is supplied it must equal APP_ORIGIN. There is no CORS permission
 for another site to supply that header. Violations return 403 ORIGIN_FORBIDDEN.
 express-rate-limit permits 20 attempts per 15 minutes per IP/process, including
-invalid bodies, then returns 429 LOGIN_RATE_LIMITED. The backend does not trust
-forwarded IP headers; configure a trusted proxy deliberately before deployment.
+invalid bodies, then returns 429 LOGIN_RATE_LIMITED. `loginRateLimitKey` uses
+Vercel's platform-generated `x-vercel-forwarded-for` client address only when the
+platform sets `VERCEL=1`; Vercel overwrites that address to prevent client spoofing.
+Local and other deployments ignore forwarded headers and use the direct socket
+address. `ipKeyGenerator` groups IPv6 clients by /56 so rotating addresses inside
+one allocation cannot trivially bypass the limit. If neither platform nor socket
+provides an address, the limiter deliberately falls back to one shared `unknown`
+bucket instead of silently disabling protection.
 
 startSession prunes expired sessions, creates a new AuthSession with a random
 32-byte CSRF token and a 30-minute expiry, then signs an HS256 JWT. JWT claims use
@@ -1210,6 +1216,12 @@ Prisma connection before launching separate registration processes.
   Express handler successfully.
 - Production URL/API verification remains pending the Git-triggered deployment;
   this entry does not claim the hosted API is live yet.
+
+2026-11-12 hosted login proxy correction verification:
+
+- Added focused tests proving that production uses Vercel's trusted client-IP
+  header with IPv6 /56 grouping and that local requests ignore a spoofed copy of
+  that header. Live verification is recorded after the corrected deployment.
 
 2026-11-12 repository publication verification:
 
@@ -1870,6 +1882,15 @@ three simulators, stack, MVP boundaries, deterministic-policy requirement, and
 architecture. Later approved architecture decisions must be recorded separately.
 
 ## 18. Implementation history
+
+### 2026-11-12 — Corrected hosted login rate-limit client identification
+
+- Added `loginRateLimitKey` to select Vercel's platform-generated client address
+  in production while retaining the direct socket address locally. Passing the
+  selected address through `ipKeyGenerator` preserves IPv6 grouping.
+- Added `backend/test/authRateLimit.test.js` for the Vercel and local trust
+  boundaries. This removes the runtime validation warnings caused by treating
+  the Vercel function proxy itself as every visitor.
 
 ### 2026-11-12 — Prepared Vercel and Neon classroom deployment
 
