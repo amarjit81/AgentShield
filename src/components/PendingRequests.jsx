@@ -1,8 +1,13 @@
 import { useEffect, useState } from 'react';
 import { Alert, Button, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from '@mui/material';
 import { getPendingActions } from '../services/actions';
+import { motion } from 'motion/react';
+import { useInterfaceMotion } from './InterfaceMotion';
+
+const MotionTableRow = motion.create(TableRow);
 
 export default function PendingRequests({ disabled, selectedId, onSelect, refreshVersion, actionType }) {
+  const { enabled } = useInterfaceMotion();
   const [requests, setRequests] = useState([]);
   const [hasMore, setHasMore] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -34,19 +39,20 @@ export default function PendingRequests({ disabled, selectedId, onSelect, refres
 
   const visibleRequests = requests.filter(request => request.action === actionType);
   return <Stack spacing={2}>
-    <Typography color="text.secondary">Incoming requests appear here automatically. Select one to review its details and approve or reject it.</Typography>
-    <Typography variant="body2">Refreshes every 4 seconds · Oldest requests first</Typography>
+    <Stack direction="row" alignItems="center" justifyContent="space-between" useFlexGap flexWrap="wrap">
+      <Typography variant="body2" color="text.secondary">Oldest requests first · Refreshes every 4 seconds</Typography>
+      <Button size="small" disabled={disabled} onClick={() => setManualRefresh(value => value + 1)}>Refresh requests</Button>
+    </Stack>
     {error && <Alert severity="warning">Unable to refresh requests: {error}</Alert>}
-    {loading ? <Typography>Loading pending requests...</Typography> : visibleRequests.length === 0 && !error ? <Alert severity="info">No requests in this domain in the loaded approval queue. Select another domain to review its requests.</Alert> : null}
+    {loading ? <Typography role="status">Loading pending requests...</Typography> : visibleRequests.length === 0 && !error ? <Typography className="queue-empty" color="text.secondary">No pending requests for this domain in the loaded queue.</Typography> : null}
     {hasMore && <Alert severity="info">Filtering the oldest 100 requests across all domains. Older requests must be reviewed before later requests can appear.</Alert>}
     {visibleRequests.length > 0 && <TableContainer><Table size="small" aria-label="Pending action requests">
       <TableHead><TableRow><TableCell>Requester / agent</TableCell><TableCell>Action</TableCell><TableCell>Review</TableCell></TableRow></TableHead>
-      <TableBody>{visibleRequests.map(request => <TableRow key={request.requestId} selected={selectedId === request.requestId}>
+      <TableBody>{visibleRequests.map(request => <MotionTableRow key={request.requestId} initial={enabled ? { opacity: 0, y: 6 } : false} animate={{ opacity: 1, y: 0 }} transition={{ duration: .25 }} selected={selectedId === request.requestId}>
         <TableCell>{request.owner?.email || 'Unknown owner'}<Typography variant="body2" color="text.secondary">{request.agentId} · {request.target}</Typography><Typography variant="caption">{new Date(request.createdAt).toLocaleString()}</Typography></TableCell>
         <TableCell sx={{ overflowWrap: 'anywhere' }}>{request.action === 'SEND_EMAIL' ? `${request.executionMode === 'SMTP' ? 'Real email' : 'Email simulation'}: ${request.arguments.subject}` : request.action === 'SANDBOX_FILE' ? `Real file: ${request.arguments.operation}` : `Refund: ₹${new Intl.NumberFormat('en-IN').format(request.arguments.amount)}`}</TableCell>
         <TableCell><Button disabled={disabled} onClick={() => onSelect(request.requestId)} aria-label={`Review ${request.agentId} request from ${request.owner?.email || 'unknown owner'}`}>{selectedId === request.requestId ? 'Selected' : 'Review'}</Button></TableCell>
-      </TableRow>)}</TableBody>
+      </MotionTableRow>)}</TableBody>
     </Table></TableContainer>}
-    <Button disabled={disabled} onClick={() => setManualRefresh(value => value + 1)} sx={{ alignSelf: 'flex-start' }}>Refresh requests</Button>
   </Stack>;
 }

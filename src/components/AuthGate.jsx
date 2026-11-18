@@ -1,11 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
 import { Alert, Box, Button, Paper, Stack, TextField, Typography } from '@mui/material';
 import { clearSession, currentSession, login, logout } from '../services/auth';
+import Brand from './Brand';
+import { useInterfaceMotion } from './InterfaceMotion';
 
 const evaluationEmail = 'user@agentshield.test';
 const evaluationPassword = 'AgentShieldDemo!2026';
 
 export default function AuthGate({ children }) {
+  const { enabled, reduced, toggle } = useInterfaceMotion();
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -65,25 +68,27 @@ export default function AuthGate({ children }) {
     }
   }
 
-  if (loading) return <Box sx={{ p: 4 }}><Typography>Checking your session...</Typography>{error && <Alert severity="warning" sx={{ mt: 2 }}>{error}</Alert>}</Box>;
+  if (loading) return <div className="session-loading"><Brand /><p role="status">Opening your workspace…</p>{error && <Alert severity="warning" sx={{ mt: 2 }}>{error}</Alert>}</div>;
   if (session) return children(session.user, signOut);
-  return <Box sx={{ maxWidth: 440, mx: 'auto', p: 3, mt: 6 }}><Paper variant="outlined" sx={{ p: 3 }}>
-    <Typography variant="h4" sx={{ mb: 1 }}>AgentShield</Typography>
-    <Typography sx={{ mb: 3 }}>Log in to demonstrate refunds, emails, and sandbox file operations.</Typography>
+  return <div className="login-page">
+    <header className="login-header"><Brand /><span className="eyebrow">A HUMAN SAY IN EVERY AGENT ACTION.</span><a href="#sign-in">Your workspace <span aria-hidden="true">↗</span></a></header>
+    <main className="login-layout">
+      <section className="login-story" aria-labelledby="brand-headline"><span className="eyebrow">BUILT FOR AGENTS. GUIDED BY YOU.</span><h1 id="brand-headline">Power,<br />with <em>permission.</em><span className="headline-dot">*</span></h1><p>Let your agents do more.<br />Keep the final say.</p>
+        <div className="permission-art" aria-label="Illustration of an agent action passing through a policy boundary"><div className="art-orbit orbit-one"/><div className="art-orbit orbit-two"/><div className="art-core"><span>as.</span></div><span className="art-label label-action">01 / AGENT INTENT</span><span className="art-label label-human">02 / YOUR RULES</span><span className="art-label label-proof">03 / ACCOUNTABLE ACTION</span><span className="art-node node-one">↗</span><span className="art-node node-two">✓</span></div>
+        <div className="story-footnote"><span>REFUNDS / EMAIL / SANDBOX FILES</span>{!reduced && <button type="button" className="orbit-toggle" onClick={toggle}>{enabled ? 'Pause animation' : 'Play animation'}</button>}</div>
+      </section>
+      <section className="login-form-area" id="sign-in" aria-labelledby="login-title"><Paper className="login-panel" elevation={0}>
+    <span className="eyebrow">YOUR CONTROL ROOM</span>
+    <Typography component="h2" id="login-title" className="login-title">Good to have<br />you here.</Typography>
+    <Typography sx={{ mb: 4 }} color="text.secondary">Sign in to your AgentShield workspace.</Typography>
     {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
-    <Alert severity="info" sx={{ mb: 2 }}>
-      <Typography fontWeight={700}>Evaluation demo</Typography>
-      <Typography variant="body2">Email: {evaluationEmail}</Typography>
-      <Typography variant="body2" sx={{ mb: 1 }}>Password: {evaluationPassword}</Typography>
-      <Button size="small" variant="outlined" disabled={busy} onClick={signInForEvaluation}>
-        {busy ? 'Opening demo...' : 'Enter evaluation demo'}
-      </Button>
-    </Alert>
     <Stack component="form" onSubmit={signIn} spacing={2}>
       <TextField label="Email" type="email" autoComplete="username" required value={email} disabled={busy} onChange={e => setEmail(e.target.value)} />
       <TextField label="Password" type="password" autoComplete="current-password" required value={password} disabled={busy} onChange={e => setPassword(e.target.value)} />
-      <Button type="submit" variant="contained" disabled={busy}>{busy ? 'Logging in...' : 'Log in'}</Button>
-      <Button disabled={busy} onClick={restore}>Check existing session</Button>
+      <Button type="submit" variant="contained" className="login-submit" disabled={busy}>{busy ? 'Opening workspace…' : 'Enter workspace ↗'}</Button>
+      <Button size="small" disabled={busy} onClick={restore}>Restore existing session</Button>
     </Stack>
-  </Paper></Box>;
+    <div className="evaluation-box"><span className="eyebrow">JUST EXPLORING?</span><Typography variant="body2" sx={{ my: 1 }}>Take the user workspace for a spin with the classroom demo.</Typography><Button variant="outlined" fullWidth disabled={busy} onClick={signInForEvaluation}>{busy ? 'Opening demo…' : 'Try the evaluation demo ↗'}</Button><details><summary>Demo sign-in details</summary><p>{evaluationEmail}<br />{evaluationPassword}</p></details></div>
+    <p className="login-access-note">Your account role opens the right workspace.<br />Users request. Managers review.</p>
+  </Paper></section></main><footer className="login-footer"><span>AGENTSHIELD / AGENT GOVERNANCE</span><span>Human judgment. Agent potential.</span></footer></div>;
 }

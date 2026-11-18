@@ -904,6 +904,152 @@ JSON parser errors occur before route authentication and retain INVALID_JSON (40
 
 ## 10. Frontend behavior
 
+### 2026-11-18 login and domain artwork finishing pass
+
+The two login rings and center mark share the same center in CSS. Translation
+sets that center and rotation works independently, so the rings stay aligned
+throughout the 11-second loop. Each ring uses a 2-pixel lavender outline.
+The three domain card drawings use
+60-pixel frames on desktop and 50-pixel frames on phones, with darker lavender,
+thicker outlines, and full opacity once drawn. Card hover movement follows the
+existing motion preference, including system reduced motion.
+
+### 2026-11-18 workspace layout and animation refinement
+
+The compact domain header leaves more room for the work itself. The User view pairs
+the request composer with the saved outcome. Saved request lookup opens below the
+composer. The Manager view puts the live queue and review panel first, with policy
+settings in a disclosure below them. Policy forms stay mounted while collapsed,
+so opening or closing them preserves edits. Both roles can expand the saved audit
+log and see its event count on the collapsed row. At narrow widths the two panels
+stack in reading order.
+
+`ActionDetails.jsx` renders a refund amount beside its saved threshold values when
+available, a message preview with recipient and delivery mode, or a file operation
+with path and proposed content. In a pending file review it can display the
+already-fetched current file alongside the proposed replacement. The same refresh
+control and file-preview requirement still apply to approval. The decision reason
+and approve, reject, or execute controls sit in the review panel. The saved ID,
+policy version, and other metadata are in an expandable section. Approval
+snapshots, receipts, and audit events still use the existing saved server record.
+
+Two CSS keyframes rotate the login ellipses in opposite directions through a
+bounded arc so they stay within the illustration. The mark and labels stay put.
+The login Pause/Play control shares the dashboard's saved motion preference.
+System reduced motion keeps both rings static. DomainEntrance enlarges the three
+props and finishes the receipt unfold, envelope opening, or folder opening before
+fading the decorative overlay. The full entrance takes 1.24 seconds, accepts no
+pointer events, and is skipped when motion is off. The changes reuse the existing
+libraries, navigation, and request handlers.
+
+### 2026-11-18 dedicated domain pages and entrance transitions
+
+Both roles now land on a domain chooser dashboard, rather than the earlier inline
+domain/workspace layout. All existing User and Manager functionality remains in
+the corresponding dedicated domain page. `useWorkspaceNavigation.js` maps hash
+routes `#/domains/refunds`, `#/domains/email` and `#/domains/sandbox-files`; `#/`
+(or no recognized hash) is the chooser. Hash routes keep deep reloads compatible
+with existing Vite/Vercel hosting without adding backend routes or a router package.
+The hook handles browser Back/Forward, clears stale request selection only when
+changing domains, moves focus to the new heading and scrolls to the page top.
+Navigation is disabled during mutations/policy saves; a browser hash change during
+that interval restores the current route. A loaded saved request can replace the
+current domain route to match its real action without clearing that selected record.
+
+`Dashboard` retains its parent state across the chooser/workspace switch, so amount,
+email and sandbox drafts remain in memory. Leaving a page unmounts its form/queue
+children and cleans up their existing polling; returning mounts them normally.
+The record polling in Dashboard still follows its selected saved request. Drafts
+are not persisted across full reloads. Dedicated pages include a Back to dashboard
+button and role/domain breadcrumb. The chooser does not expose action form controls.
+
+Replaced the currency-loop refund glyph with a simple receipt/check drawing in
+DomainArtwork. `DomainEntrance.jsx` provides short, domain-specific decorative
+entrances: unfolding receipt/check, opening envelope with letter, and opening folder
+with sheet. CSS keyframes draw the objects; Motion fades the overlay within .85s.
+The overlay has no pointer events, is hidden from assistive technology, and never
+submits or gates a tool operation. Motion-off and OS reduced motion omit it entirely.
+Existing colors, fonts, login, status fields, role permissions and API handlers remain.
+
+### 2026-11-18 dashboard motion pass (local review only)
+
+Added `motion` 14.14.0 (locked in package-lock.json) for React animation. The
+cream/lavender/graphite palette and Georgia/system sans-serif fonts remain. The
+installation adds Motion's framer-motion, motion-dom, motion-utils and tslib
+packages; npm also pruned an extraneous yaml lock entry. No backend packages,
+API contracts, policies, database schema or production deployment were changed.
+
+`components/InterfaceMotion.jsx` supplies a shared motion preference and MotionConfig.
+The dashboard header's "Motion on/off" button stores only a preference in localStorage
+(`agentshield-motion`); storage failure simply makes it session-only. One cleaned-up
+matchMedia change listener tracks OS reduced-motion changes while the page is open.
+Effective motion is enabled only when both the user and device allow it. CSS
+transitions/keyframes and Motion transforms respect the same setting. Opacity
+feedback may remain, but positional animations and pointer tilt are disabled.
+
+Its `SceneTransition` animates the existing workspace wrapper on domain changes
+without keying/remounting the whole form/queue subtree. This preserves the existing
+polling lifecycle and parent-held form drafts. Effect cleanup stops interrupted
+animations; disabling motion restores opacity/position immediately, so rapid
+switching or preference changes cannot leave a partly hidden workspace. It does
+not delay, replay or trigger application mutations.
+
+`components/DomainArtwork.jsx` provides three custom SVG line drawings (refund,
+envelope, sandbox box). The hero artwork crossfades and redraws for the selected
+domain, with a spring-smoothed pointer tilt on mouse devices. Motion values track
+pointer position without React state updates for every pointer event. The artwork
+is decorative; it does not imply a policy decision or delivery/execution result.
+The decorative panel is hidden on phones. DomainSelector reuses the SVG drawings
+and slides a shared lavender selection surface between real accessible buttons.
+Its selected label, aria-pressed, keyboard focus and busy/disabled behavior remain.
+
+Sections reveal once as they enter view; pending queue rows animate on insertion
+using stable request IDs rather than replaying on every polling response. Existing
+saved-record stage bars animate from real approval/execution fields. Status tags
+use green/amber/red semantics, notices enter with a short reveal, and submit shows
+a small spinner only during the existing busy state. Hover/press feedback, intro
+reveals and the login illustration hover interaction are handled in styles.css.
+There are no fabricated statistics, decorative charts or continuously autoplaying
+background animation. The original request/approval/execution handlers and role
+checks remain responsible for all application behavior.
+
+Motion implementation references: [shared layout animation](https://motion.dev/docs/react-layout-animations)
+and [accessible motion](https://motion.dev/docs/react-accessibility). The project's
+own reactive media listener handles device-setting changes as well as initial load.
+
+### 2026-11-18 visual identity (local review branch)
+
+The interface now uses a warm cream, lavender and graphite visual system. This
+change is local to `codex/brand-redesign`; it has not been deployed or promoted.
+`src/theme.js` centralizes Material UI colors, type sizes, borders, input and button
+styles. Keeping Material UI preserves the existing controls and avoids a library
+migration. System Segoe UI/Helvetica/Arial and Georgia provide sans-serif interface
+text and editorial headings without downloading or redistributing commercial fonts.
+These are stylistic alternatives, not the exact Apple or Wispr fonts.
+
+`components/Brand.jsx` renders the reusable AgentShield wordmark and an inline SVG
+shield/A symbol. `styles.css` defines the split login composition, decorative policy
+boundary illustration, role introductions, empty-state guidance, request stages,
+and responsive layouts. The login form retains its original labels, autocomplete,
+validation, busy/error handling and authentication functions. Public evaluation
+credentials are available in an expandable details element; the one-click demo
+still calls the same authentication helper. Session restoration/retry is unchanged.
+
+The dashboard uses the same role checks: USER sees submission, MANAGER/ADMIN sees
+policy settings and the pending queue. The intro copy identifies the role. Domain
+buttons share one bordered strip and show the selected domain in lavender; their
+aria-pressed state, keyboard focus and reset behavior remain. Four request markers
+are derived from the saved record: submitted/evaluated, reviewed only when an
+approval record exists, and executed only when execution exists. These markers
+do not invent a review for automatically allowed actions. Saved request details,
+review/file preview, execution, receipts and audit retain the original handlers.
+No backend, database, dependency, environment or API files changed.
+
+At phone widths login stacks vertically, the decorative illustration is hidden,
+and domain/workspace panels stack. Reduced-motion preferences disable smooth
+scrolling and transitions. The theme includes visible keyboard focus and persistent
+form labels. The document title/description and browser theme color match the brand.
+
 AuthGate checks GET /api/auth/me on startup and displays a labeled login form
 when there is no session. The public classroom deployment also shows its seeded
 USER credentials in an Evaluation demo box. `signInForEvaluation` passes those
@@ -1206,6 +1352,60 @@ database suites cannot delete each other's fixtures. CLI checks release the pare
 Prisma connection before launching separate registration processes.
 
 ## 12. Verification record
+
+- Login ring follow-up: `npm run build` passed. Local Chromium confirmed
+  2-pixel outlines, an 11-second cycle, shared centers at desktop and tablet
+  widths, and static rings with reduced motion.
+
+2026-11-18 artwork finishing pass:
+
+- The frontend build and Git whitespace check passed. Chromium verified both
+  ring centers against the mark at desktop and tablet widths, the 14-second
+  cycle, and static rings with reduced motion. All three card drawings had the
+  expected desktop and phone sizes, thicker strokes, and no page overflow.
+
+2026-11-18 workspace refinement:
+
+- `npm run build` passed. The existing large JavaScript chunk warning remains.
+- Chromium checked both roles across all domains, browser Back and reload,
+  mobile width, suppressed entrances with reduced motion, opposite login ring
+  animations, and the Pause/Play control.
+- Manager Email opened with the review queue above policy settings. The policy
+  form expanded and reloaded. User submitted a refund and opened the saved
+  request details and audit log, then submitted a simulated email and saw its
+  preview. Manager approved and rejected separate scripted sandbox changes in
+  the live local preview. The approved change executed and passed read-back.
+- Reviewed React component boundaries, stable request keys, mounted policy forms,
+  and keyboard-accessible native disclosures. Browser verification used the
+  local preview with simulated email. No production deployment was performed.
+
+2026-11-18 dashboard motion verification:
+
+- `npm run build` passed with 1,367 transformed modules. The main JS bundle is
+  about 676 kB (215 kB gzip), up from about 501 kB before Motion. Vite's over-500-kB
+  warning remains; splitting/loading optimization has not been implemented.
+- Real local User login, INR 8,000 submission, Manager login/approval passed after
+  adding Motion. No API mocks were used and no browser exceptions were reported.
+- Additional browser checks confirmed animated selection alignment, rapid domain
+  switching, preservation of a typed refund draft, and zero mutation requests
+  caused by domain switching. Keyboard activation and the persisted motion-off
+  preference passed. Turning device reduced motion on while the page was open
+  initially exposed stale preference handling; a shared matchMedia listener fixed
+  it and the complete check passed on rerun.
+- User layouts at 390/768/1440px and Manager at 390/1440px had no horizontal page
+  overflow. Manager switched between all three domains with valid policy panels
+  and no page exceptions. Screenshots are in ignored tmp/motion-*.png and
+  tmp/manager-motion-*.png. `git diff --check` passed.
+- React review checked stable component definitions/keys, cleaned-up animation and
+  media listeners, controlled drafts, retained role gates, no API writes tied to
+  animation callbacks, and noninteractive decorative SVGs. No scroll hijacking,
+  hidden cursor, or delayed disabling of action controls was introduced.
+- `npm audit` reports five high-severity entries in existing Vite/globbing/source-map
+  tooling (vite, fdir, picomatch, tinyglobby, source-map-js); Motion packages are not
+  listed. These existing packages were not upgraded in this visual change. No
+  claim of a clean security audit is made; remediation remains separate work.
+- Preview at `http://127.0.0.1:5174/` remains the review target. Nothing was deployed
+  or promoted to production, and the submitted production URL was untouched.
 
 2026-11-12 evaluation login presentation verification:
 
@@ -1910,6 +2110,51 @@ three simulators, stack, MVP boundaries, deterministic-policy requirement, and
 architecture. Later approved architecture decisions must be recorded separately.
 
 ## 18. Implementation history
+
+### 2026-11-18 — Adjusted login ring weight and speed
+
+- Increased the ring outlines from 1 to 2 pixels and shortened the rotation
+  cycle from 14 to 11 seconds. Kept the shared center and motion controls.
+
+### 2026-11-18 — Finished login and domain card artwork
+
+- Aligned and sped up the login rings. Enlarged and strengthened the domain card
+  drawings and applied the existing motion setting to their hover movement.
+
+### 2026-11-18 — Refined workspace layouts and entrances
+
+- Added opposite login ring motion with a pause control and made each domain
+  entrance larger and longer. Prioritized composing and reviewing in both roles.
+- Added domain-specific saved request previews, with policy settings, metadata,
+  saved request lookup, and the audit log available through native disclosures.
+- Verified the production build and local browser workflows, including live
+  sandbox approval and rejection. Existing request and backend logic was reused.
+
+### 2026-11-18 — Added dedicated domain workspaces
+
+- Added domain routes, Back controls, and distinct receipt, envelope, and folder entrances.
+
+### 2026-11-18 — Added restrained dashboard motion and domain artwork
+
+- Installed Motion and added InterfaceMotion/DomainArtwork modules. Domain
+  selection now glides between buttons; domain illustrations, workspace changes,
+  queue insertions, request stages and status feedback animate from real UI state.
+- Preserved typography/colors, request handlers, form drafts, polling and role
+  checks. Added a persisted motion toggle with reactive OS reduced-motion support.
+- Verified real two-role submission/approval, rapid switching without writes,
+  keyboard access, preference changes and responsive layouts. Build, bundle cost,
+  audit findings and browser checks are recorded in section 12. Local review only.
+
+### 2026-11-18 — Added a local AgentShield visual redesign
+
+- Created `codex/brand-redesign` to isolate review work from `main`.
+- Added a shared theme and vector brand component, redesigned login from the
+  existing AuthGate, and styled both role workspaces with cream/lavender colors,
+  editorial headings, consistent forms/tables and saved-request stage markers.
+- Retained authentication, policies, queue, execution and audit request handling.
+- Updated browser metadata and responsive/reduced-motion styles. Build and
+  fixture-based browser verification are recorded in section 12; no deployment
+  or production promotion has been performed.
 
 ### 2026-11-12 — Made the public evaluation account discoverable
 
